@@ -1,0 +1,3 @@
+Src/GPIO.o: ../Src/GPIO.c C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/GPIO.h
+
+C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/GPIO.h:
