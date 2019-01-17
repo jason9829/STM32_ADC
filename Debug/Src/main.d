@@ -25,7 +25,10 @@ Src/main.o: ../Src/main.c C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/main.h \
  C:/student/JLXW/STM32_ADC/STM32_ADC/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  C:/student/JLXW/STM32_ADC/STM32_ADC/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/ADC.h \
- C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/common.h
+ C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/common.h \
+ C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/GPIO.h \
+ C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/USART.h \
+ C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/RCC.h
 
 C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/main.h:
 
@@ -82,3 +85,9 @@ C:/student/JLXW/STM32_ADC/STM32_ADC/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_h
 C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/ADC.h:
 
 C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/common.h:
+
+C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/GPIO.h:
+
+C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/USART.h:
+
+C:/student/JLXW/STM32_ADC/STM32_ADC/Inc/RCC.h:

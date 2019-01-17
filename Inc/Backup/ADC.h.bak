@@ -70,14 +70,14 @@ struct c_adcRegs{
 #define ADC_AWDCH_17	(17ULL)	// ADC analog input Channel 17
 #define ADC_AWDCH_18	(18ULL)	// ADC analog input Channel 18
 
-#define ADC_EOCIE		(1ULL << 5)		// Enable end of conversion (EOC) interrupt
+#define ADC_EOCIE		(1ULL << 5)	// Enable end of conversion (EOC) interrupt
 #define ADC_AWDIE		(1ULL << 6) 	// Enable Analog watchdog interrupt enable
-#define ADC_JEOCIE		(1ULL << 7)		// Enable interrupt for injected channels
+#define ADC_JEOCIE		(1ULL << 7)	// Enable interrupt for injected channels
 #define ADC_SCAN_EN		(1ULL << 8) 	// Enable scan mode
-#define ADC_AWDSGL_EN	(1ULL << 9)		// Enable watchdog on single channel, default is all channels
-#define ADC_JAUTO_EN	(1ULL << 10)    // Enable automatic injected group conversion
-#define ADC_DISCEN		(1ULL << 11)    // Enable discontinuous mode on regular channels
-#define ADC_JDISCEN		(1ULL << 12)    // Enable discontinuous mode on injected channels
+#define ADC_AWDSGL_EN	(1ULL << 9)	// Enable watchdog on single channel, default is all channels
+#define ADC_JAUTO_EN	(1ULL << 10)   // Enable automatic injected group conversion
+#define ADC_DISCEN		(1ULL << 11)   // Enable discontinuous mode on regular channels
+#define ADC_JDISCEN		(1ULL << 12)   // Enable discontinuous mode on injected channels
 
 #define ADC_DISCNUM_1		(0ULL << 13)	// Discontinuous mode channel count, 1 channel
 #define ADC_DISCNUM_2		(1ULL << 13)	// Discontinuous mode channel count, 2 channels
@@ -100,12 +100,12 @@ struct c_adcRegs{
 
 
 /**************ADC control register 2 (ADC_CR2)******************/
-#define ADC_ADON			(1ULL << 32)   	 // Enable ADC
+#define ADC_ADON			(1ULL << 32)   // Enable ADC
 #define ADC_CONT			(1ULL << 33)	 // Continuous conversion mode, default is single conversion
 #define ADC_DMA				(1ULL << 40)	 // Enable DMA, for single ADC mode
 #define ADC_DDS				(1ULL << 41)	 // Disable DMA selection, DMA requests issue as long as
-									 	 	 // data are converted and DMA is enable for single ADC mode
-#define ADC_EOCS				(1ULL << 42)	 // End of conversion selection (overrun detection when DMA enabled)
+									 	 // data are converted and DMA is enable for single ADC mode
+#define ADC_EOCS			(1ULL << 42)	 // End of conversion selection (overrun detection when DMA enabled)
 #define ADC_LEFT_ALIGN			(1ULL << 43)	 // Data left alignment, default right alignment
 #define ADC_RIGHT_ALIGN			(0ULL << 43)	 // Data left alignment, default right alignment
 
@@ -235,41 +235,24 @@ struct c_adcRegs{
 #define C_ADC123_INTERLEAVED	23	// Interleaved mode only
 #define C_ADC123_ALTM			25	// Alternate trigger mode only
 
-#define C_ADC_VBATE				(1 << 22)	// VBAT enable
+#define C_ADC_VBATE				(1 << 22)	//  VBAT enable
 #define C_ADC_TSVREFE			(1 << 23)	// Temperature sensor and VREFINT enable
-
-#define C_ADC_ADCPRE2			(0 << 16)	// PCLK2 divided by 2
-#define C_ADC_ADCPRE4			(1 << 16)	// PCLK2 divided by 4
-#define C_ADC_ADCPRE6			(2 << 16)	// PCLK2 divided by 6
-#define C_ADC_ADCPRE8			(3 << 16)	// PCLK2 divided by 8
-
-#define adcClearAllFlags(adc)	adcClearFlag(adc, ADC_AWD | ADC_EOC | ADC_JEOC | \
-								ADC_JSTRT | ADC_STRT | ADC_OVR)
-#define adcClearFlag(adc, whichFlag)	((adc)->SR &= ~(whichFlag))
-#define adcGetStatus(adc, whichFlag)	((adc)->SR & whichFlag)
-
-#define adcIsRegularConversionEnded(adc)		adcGetStatus(adc, ADC_EOC)
-#define adcIsInjectedConversionEnded(adc)		adcGetStatus(adc, ADC_JEOC)
-
-/*
-#define adcStartConversion(adc)		\
-		do{							\
-			adcClearAllFlags(adc);	\
-			(adc)->CR2 |= (uint32_t)((ADC_SWSTART >>32) & 0xffffffff);\
-		}while(0)
-*/
-#define adcStartConversion(adc)		\
-		do{							\
-			(adc)->CR2 |= (1 << 30);\
-		}while(0)
 
 void adcEnableClock(adcRegs *adc);
 void adcSetChannelSamplingSequence(adcRegs *adc, int channels[], int numOfChan);
 void adcChannelSamplingTime(adcRegs *adc, int channel, int cycles);
 void configureADC(adcRegs *adc, long long mode);
-void configureCommonADC(uint32_t mode);
-uint16_t adcReadValue(adcRegs *adc);
-float calculateTemperature(uint8_t resolution, float Vdd, int valReaded);
 
+#define adcClearAllFlags(adc)	(adc)->SR &= 0x3F
+#define adcGetStatus(adc, whichFlag)	(adc)->SR & whichFlag
+
+#define adcIsRegularConversionEnded(adc)		adcGetStatus(adc, ADC_EOC)
+#define adcIsInjectedConversionEnded(adc)		adcGetStatus(adc, ADC_JEOC)
+
+#define adcStartConversion(adc)		\
+		do{							\
+			adcClearAllFlags(adc);	\
+			(adc)->CR2 |= (uint32_t)((ADC_SWSTART >>32) & 0xffffffff);\
+		}while(0)
 
 #endif // __ADC_H__

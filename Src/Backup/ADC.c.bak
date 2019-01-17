@@ -1,10 +1,6 @@
 #include "ADC.h"
 #include "common.h"
 #include "RCC.h"
-#include <math.h>
-
-#define V25			0.76
-#define avgSlope	0.0025
 
 void adcEnableClock(adcRegs *adc){
 	RESET_ADC_CLK_GATING();
@@ -82,19 +78,4 @@ void adcChannelSamplingTime(adcRegs *adc, int channel, int cycles){
 void configureADC(adcRegs *adc, long long mode){
 	(adc)->CR1 = (uint32_t)(mode & 0xffffffff);
 	(adc)->CR2 = (uint32_t)((mode>>32) & 0xffffffff);
-}
-
-void configureCommonADC(uint32_t mode){
-	(c_adc)->CCR = mode;
-}
-
-uint16_t adcReadValue(adcRegs *adc){
-	return (adc)->DR;
-}
-
-// Calculate temperature with value read from ADR
-float calculateTemperature(uint8_t resolution, float Vdd, int valRead){
-	float Vsense = ((valRead/pow(2, resolution)) * Vdd);
-	float Temperature = ((Vsense - V25)/ avgSlope) + 25;
-	return Temperature;
 }

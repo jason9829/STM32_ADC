@@ -43,15 +43,10 @@
 /* USER CODE BEGIN Includes */
 #include "ADC.h"
 #include "GPIO.h"
-#include "USART.h"
-#include "RCC.h"
-
-#include <stdio.h>
-#include <math.h>
-#include <stdarg.h>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -67,28 +62,7 @@ static void MX_GPIO_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-#define MAX_BUFFER_SIZE	512
-char uartPrintBuffer[MAX_BUFFER_SIZE];
-
-void uartPrintf(char *message, ...){
-	va_list args;
-	int length, i;
-
-	va_start(args, message);
-	length = vsnprintf(uartPrintBuffer, 0, message, args);
-
-	if(length > MAX_BUFFER_SIZE - 1){
-		length = MAX_BUFFER_SIZE - 1;
-	}
-
-	vsnprintf(uartPrintBuffer, length +1, message, args);
-
-	for(i = 0; i < length; i++){
-		while(!(usartIsTxRegEmpty(uart5)));
-		(uart5)->DR = uartPrintBuffer[i];
-	}
-}
-
+int channelSeq[] = {ADC_CH_1, ADC_CH_6, ADC_CH_10, ADC_CH_14, ADC_CH_1, ADC_CH_6, ADC_CH_10, ADC_CH_14, ADC_CH_1, ADC_CH_6, ADC_CH_10, ADC_CH_14};
 /* USER CODE END 0 */
 
 /**
@@ -99,9 +73,7 @@ void uartPrintf(char *message, ...){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	int volatile valueReadCH5, valueReadCH13, valueReadCH18;
-	int volatile ch5;
-	float temperature;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -123,104 +95,38 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-
-  int channelSeq[] = {ADC_CH_18, ADC_CH_13, ADC_CH_5};
   adcEnableClock(adc1);
   adcSetChannelSamplingSequence(adc1, channelSeq, sizeof(channelSeq)/4);
-   // CH18
-   adcChannelSamplingTime(adc1, ADC_CH_18, ADC_SAMP_112_CYCLES);
-   // PC3
-   adcChannelSamplingTime(adc1, ADC_CH_13, ADC_SAMP_480_CYCLES);
-   // PA5
-   adcChannelSamplingTime(adc1, ADC_CH_5, ADC_SAMP_480_CYCLES);
+  adcChannelSamplingTime(adc1, ADC_CH_1, ADC_SAMP_15_CYCLES);
+  adcChannelSamplingTime(adc1, ADC_CH_6, ADC_SAMP_3_CYCLES);
+  adcChannelSamplingTime(adc1, ADC_CH_10, ADC_SAMP_144_CYCLES);
+  adcChannelSamplingTime(adc1, ADC_CH_14, ADC_SAMP_480_CYCLES);
+  configureADC(adc1, ADC_RES_10 | ADC_LEFT_ALIGN |  ADC_SCAN_EN \
+		  	  	  	 | ADC_ADON | ADC_CONT | ADC_OVRIE);
 
-
-
-  configureADC(adc1, ADC_RES_10  |	ADC_SCAN_EN |	\
-		  	  	  	 ADC_ADON | ADC_EOCS);
-  configureCommonADC(C_ADC_TSVREFE | C_ADC_ADCPRE4);
-
-  RESET_UART5_CLK_GATING();
-  UNRESET_UART5_CLK_GATING();
-  ENABLE_UART5_CLK_GATING();
-  ENABLE_GPIOA_CLK_GATING();
-  ENABLE_GPIOC_CLK_GATING();
-
-  // UART5_TX
-  GPIOConfigurePin(gpioC, GPIOPin12, GPIO_ALT_FUNC|GPIO_VERY_HI_SPEED);
-  GPIOConfigureAltFunc(gpioC, GPIOPin12, AF8);
-
-  usartConfigure(uart5, USART_OVERSAMPLING_16 | USART_WORD_LENGTH_9BITS |	\
-		  	  	  	  	USART_ENABLE | USART_STOP_BIT_1 | USART_PC_ENABLE | \
-						USART_PARITY_ODD \
-						| USART_TE_ENABLE  ,115200, 45000000);
-
-  // GPIO config for PA5 (2 V), ADC channel 5
-  GPIOConfigurePin(gpioA, GPIOPin5, GPIO_ANALOG);
-
-  // GPIO config for PC3 (1 V), ADC channel 13
-  GPIOConfigurePin(gpioC, GPIOPin3, GPIO_ANALOG);
+  GPIOConfigurePin(gpioA, GPIOPin1, GPIO_ANALOG|GPIO_VERY_HI_SPEED);	// Channel 1 ADC
+  GPIOConfigurePin(gpioA, GPIOPin6, GPIO_ANALOG|GPIO_VERY_HI_SPEED);	// Channel 6 ADC
+  GPIOConfigurePin(gpioC, GPIOPin0, GPIO_ANALOG|GPIO_VERY_HI_SPEED);	// Channel 10 ADC
+  GPIOConfigurePin(gpioC, GPIOPin4, GPIO_ANALOG|GPIO_VERY_HI_SPEED);	// Channel 14 ADC
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
   while (1)
   {
-	  do{
-		  do{
+	  adcStartConversion(adc1);
 
-			  adcClearAllFlags(adc1);
-			  adcStartConversion(adc1);
-			  while(!(adcIsRegularConversionEnded(adc1))){
-			  if(adcGetStatus(adc1, ADC_OVR)){
-				  goto overrunOccured;
-			  	  }
-			  }
-			  //adcClearFlag(adc1, ADC_OVR);
-			  valueReadCH18 = adcReadValue(adc1);
+	  while(!adcIsRegularConversionEnded(adc1));
+  /* USER CODE END WHILE */
 
-
-			  //adcStartConversion(adc1);
-			  while(!(adcIsRegularConversionEnded(adc1))){
-				  if(adcGetStatus(adc1, ADC_OVR)){
-					  goto overrunOccured;
-				  }
-			  }
-			  //adcClearFlag(adc1, ADC_OVR);
-			  valueReadCH13 = adcReadValue(adc1);
-
-
-			  //adcStartConversion(adc1);
-			  while(!(adcIsRegularConversionEnded(adc1))){
-				  if(adcGetStatus(adc1, ADC_OVR)){
-					  goto overrunOccured;
-				  }
-			  }
-			  //adcClearFlag(adc1, ADC_OVR);
-			  valueReadCH5 = adcReadValue(adc1);
-
-			  temperature = calculateTemperature(10, 2.93, valueReadCH18);
-
-			  uartPrintf("(ch18)%4d | (ch13)%4d | (ch5)%4d  |  (ch18) %.4fV | (ch13) %.4fV | (ch5) %.4fV | Temperature : %.4fC\n", \
-					  valueReadCH18, valueReadCH13, valueReadCH5, valueReadCH18* (2.93 / 1023), valueReadCH13* (2.93 / 1023), valueReadCH5* (2.93 / 1023) ,temperature);
-			  //uartPrintf("(ch18) %.4fV | (ch13) %.4fV | (ch5) %.4fV | Temperature : %.4fC\n ", \
-			 					  valueReadCH18* (2.93 / 1023), valueReadCH13* (2.93 / 1023), valueReadCH5* (2.93 / 1023),temperature);
-			  HAL_Delay(500);
-		  }while(1);
-		  overrunOccured:
-		  adcClearAllFlags(adc1);
-
-	  }while(1);
+  /* USER CODE BEGIN 3 */
 
   }
+  /* USER CODE END 3 */
 
 }
-/* USER CODE END WHILE */
 
-/* USER CODE BEGIN 3 */
-/* USER CODE END 3 */
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -242,20 +148,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = 16;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 90;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-    /**Activate the Over-Drive mode 
-    */
-  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -264,12 +158,12 @@ void SystemClock_Config(void)
     */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
